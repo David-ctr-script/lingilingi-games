@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Para mi Luna 🌙</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Press+Start+2P&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background: #010103;
+            font-family: 'Space Mono', monospace;
+            color: white;
+            touch-action: none;
+            user-select: none;
+        }
+
+        /* ═══════════════════════════════════════════
+           LOBBY / LIMBO
+        ═══════════════════════════════════════════ */
+        #lobby {
+            position: fixed; inset: 0; z-index: 100;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: radial-gradient(ellipse at 50% 30%, #1a004a 0%, #060016 60%, #000008 100%);
+            overflow: hidden;
+        }
+        #lobby.hidden { display: none !important; }
+
+        /* Stars background for lobby */
+        #lobby-stars {
+            position: absolute; inset: 0; pointer-events: none;
+        }
+
+        .lobby-star {
+            position: absolute; border-radius: 50%;
+            background: white;
+            animation: lobbyTwinkle var(--dur,2s) infinite var(--delay,0s);
+        }
+        @keyframes lobbyTwinkle {
+            0%,100% { opacity: .15; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+
+        /* Floating decoration hearts */
+        .lobby-float {
+            position: absolute; pointer-events: none;
+            animation: lobbyDrift var(--d,8s) ease-in-out infinite var(--dl,0s);
+            opacity: .18; font-size: var(--fs, 24px);
+        }
+        @keyframes lobbyDrift {
+            0%,100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(10deg); }
+        }
+
+        .lobby-inner { position: relative; z-index: 2; text-align: center; padding: 20px; width: 100%; max-width: 420px; }
+
+        .lobby-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.6rem, 7vw, 2.8rem);
+            font-weight: 900;
+            letter-spacing: 6px;
+            background: linear-gradient(180deg, #fff 0%, #ffd700 55%, #ff9900 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+            filter: drop-shadow(0 0 24px rgba(255,200,0,.55));
+            margin-bottom: 4px;
+        }
+        .lobby-subtitle {
+            font-size: 0.65rem; letter-spacing: 5px;
+            color: rgba(255,255,255,.35); margin-bottom: 6px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Relationship timer */
+        .lobby-timer-wrap {
+            margin: 0 auto 32px;
+            display: inline-flex; flex-direction: column; align-items: center;
+            background: rgba(255,215,0,.05);
+            border: 1px solid rgba(255,215,0,.2);
+            border-radius: 12px;
+            padding: 12px 24px;
+            backdrop-filter: blur(4px);
+        }
+        .lobby-timer-label {
+            font-size: 0.6rem; letter-spacing: 4px;
+            color: rgba(255,215,0,.5); margin-bottom: 6px;
+            font-family: 'Orbitron', sans-serif;
+        }
+        .lobby-timer {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(0.75rem, 3.5vw, 1rem);
+            color: #ffd700;
+            text-shadow: 0 0 12px rgba(255,215,0,.6);
+            letter-spacing: 2px;
+        }
+
+        /* Game selector cards */
+        .lobby-games {
+            display: flex; flex-direction: column; gap: 14px;
+            width: 100%; max-width: 320px; margin: 0 auto;
+        }
+
+        .game-card {
+            display: flex; align-items: center; gap: 16px;
+            padding: 16px 20px;
+            background: rgba(255,255,255,.03);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all .25s ease;
+            clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .game-card:hover, .game-card:active {
+            border-color: rgba(255,215,0,.5);
+            background: rgba(255,215,0,.08);
+            transform: translateX(4px);
+        }
+        .game-card-icon { font-size: 28px; flex-shrink: 0; }
+        .game-card-info { text-align: left; }
+        .game-card-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.72rem; letter-spacing: 3px;
+            color: #ffd700;
+        }
+        .game-card-desc {
+            font-size: 0.6rem; letter-spacing: 1px;
+            color: rgba(255,255,255,.35); margin-top: 3px;
+        }
+        .game-card-arrow {
+            margin-left: auto; color: rgba(255,215,0,.4);
+            font-size: 1rem; flex-shrink: 0;
+        }
+
+        /* ═══════════════════════════════════════════
+           GLOBAL BACK BUTTON
+        ═══════════════════════════════════════════ */
+        #global-back {
+            position: fixed; top: 14px; left: 14px; z-index: 9999;
+            background: rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.25);
+            border-radius: 50px; padding: 10px 16px;
+            font-family: 'Orbitron', sans-serif; font-size: 0.7rem;
+            color: rgba(255,255,255,.7); cursor: pointer;
+            backdrop-filter: blur(8px);
+            display: none;
+            transition: all .2s;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #global-back:hover { color: #fff; border-color: rgba(255,215,0,.5); }
+        #global-back.visible { display: flex; align-items: center; gap: 6px; }
+
+        /* ═══════════════════════════════════════════
+           GAME WRAPPERS
+        ═══════════════════════════════════════════ */
+        .game-wrapper {
+            position: fixed; inset: 0; z-index: 50;
+            display: none;
+        }
+        .game-wrapper.active { display: block; }
+
+        /* ─────────────────────────────────────────
+           JUEGO 1: DE LA LUNA A LA TIERRA
+        ───────────────────────────────────────── */
+        #game1-wrap {
+            background: #0D0D1A;
+        }
+        #game1-wrap .stars-g1 { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        #game1-wrap .star {
+            position: absolute; border-radius: 50%; background: #F0E6FF;
+            animation: twinkle1 var(--dur,2s) infinite var(--delay,0s);
+        }
+        @keyframes twinkle1 {
+            0%,100% { opacity:.2; transform:scale(1); }
+            50% { opacity:1; transform:scale(1.6); }
+        }
+        #game1-wrap .screen {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 20px; padding: 24px;
+            opacity: 0; pointer-events: none; transition: opacity .4s ease;
+        }
+        #game1-wrap .screen.active { opacity: 1; pointer-events: all; }
+
+        #game1-wrap .btn {
+            font-family: 'Press Start 2P', monospace; font-size: clamp(8px,2.5vw,11px);
+            padding: 14px 28px; background: rgba(255,215,61,.1);
+            color: #FFD93D; border: 2px solid rgba(255,215,61,.4); border-radius: 6px;
+            cursor: pointer; letter-spacing: 2px;
+            transition: all .2s; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+            min-height: 40px;
+        }
+        #game1-wrap .btn:hover, #game1-wrap .btn:active { background: rgba(255,215,61,.22); border-color: #FFD93D; }
+        #game1-wrap .btn-rosa { color: #FF6B9D; border-color: rgba(255,107,157,.4); background: rgba(255,107,157,.1); }
+        #game1-wrap .btn-rosa:hover { background: rgba(255,107,157,.22); border-color: #FF6B9D; }
+        #game1-wrap .btn-magenta { color: #D946EF; border-color: rgba(217,70,239,.4); background: rgba(217,70,239,.1); }
+        #game1-wrap .btn-magenta:hover { background: rgba(217,70,239,.22); border-color: #D946EF; }
+        #game1-wrap .btn-red { color: #f87171; border-color: rgba(248,113,113,.4); background: rgba(248,113,113,.1); }
+
+        #game1-wrap .title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: clamp(14px,5vw,22px); color: #FFD93D;
+            text-shadow: 3px 3px 0 #000, -1px -1px 0 #FF6B9D;
+            text-align: center; line-height: 1.6; letter-spacing: 2px;
+        }
+        #game1-wrap .subtitle { font-family: 'Press Start 2P', monospace; font-size: clamp(7px,2vw,9px); color: #FF6B9D; text-align: center; opacity: .85; }
+        #screen2 { justify-content: space-between; padding: 48px 24px 32px; }
+        .scene-sprites { position: relative; width: 100%; height: 120px; flex-shrink: 0; }
+        .moon-sprite, .earth-sprite { position: absolute; width: 40px; height: 40px; image-rendering: pixelated; transition: top 1.4s cubic-bezier(.25,.46,.45,.94), right 1.4s cubic-bezier(.25,.46,.45,.94); }
+        .moon-sprite  { top:8px;  right:12%; filter: drop-shadow(0 0 8px #FFD93D); }
+        .earth-sprite { bottom:8px; left:12%; top:auto; filter: drop-shadow(0 0 8px rgba(96,165,250,.8)); }
+        .moon-sprite.s0 { top:8px;  right:12%; } .moon-sprite.s1 { top:20px; right:28%; }
+        .moon-sprite.s2 { top:32px; right:42%; } .moon-sprite.s3 { top:44px; right:52%; }
+        .poem-box { flex:1; display:flex; align-items:center; justify-content:center; padding:0 8px; }
+        .poem-text { font-family:'Press Start 2P',monospace; font-size:clamp(8px,2.3vw,10px); line-height:2; color:#F0E6FF; text-align:center; max-width:300px; white-space:pre-line; text-shadow:1px 1px 0 #000; min-height:100px; }
+        .scene-counter { font-family:'Press Start 2P',monospace; font-size:7px; color:#C084FC; opacity:.6; letter-spacing:2px; }
+        #screen3 { gap: 16px; }
+        .meet-area { position:relative; width:160px; height:120px; }
+        .moon-meet { position:absolute; width:48px; height:48px; image-rendering:pixelated; top:10px; left:16px; cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation; transition:transform .15s; filter:drop-shadow(0 0 10px #FFD93D); }
+        .moon-meet:active { transform:scale(1.15); }
+        .earth-meet { position:absolute; width:48px; height:48px; image-rendering:pixelated; bottom:10px; right:16px; cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation; transition:transform .15s; filter:drop-shadow(0 0 10px rgba(96,165,250,.9)); }
+        .earth-meet:active { transform:scale(1.15); }
+        .interact-hint { font-family:'Press Start 2P',monospace; font-size:7px; color:#C084FC; text-align:center; opacity:.7; line-height:1.8; }
+        .bubble { font-family:'Press Start 2P',monospace; font-size:clamp(7px,2vw,9px); color:#FFD93D; text-shadow:1px 1px 0 #000; text-align:center; min-height:28px; }
+        .hearts-layer { position:absolute; inset:0; pointer-events:none; z-index:1; }
+        .g1-heart { position:absolute; color:#FF6B9D; animation:floatUp1 linear forwards; opacity:0; }
+        @keyframes floatUp1 { 0% { transform:translateY(0) rotate(0deg); opacity:1; } 100% { transform:translateY(-90vh) rotate(30deg); opacity:0; } }
+        .final-msg { font-family:'Press Start 2P',monospace; font-size:clamp(12px,4.5vw,20px); color:#FFD93D; text-shadow:3px 3px 0 #000,-1px -1px 0 #FF6B9D; text-align:center; line-height:1.8; z-index:2; }
+        .final-sub { font-family:'Press Start 2P',monospace; font-size:clamp(7px,2vw,9px); color:#F0E6FF; text-align:center; opacity:.8; max-width:260px; line-height:2; z-index:2; }
+        .final-btns { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; z-index:2; }
+        .easter-btn { position:fixed; bottom:18px; right:18px; font-family:'Press Start 2P',monospace; font-size:7px; padding:10px 12px; background:rgba(255,215,61,.12); color:#FFD93D; border:1px solid rgba(255,215,61,.25); border-radius:8px; cursor:pointer; z-index:10; -webkit-tap-highlight-color:transparent; touch-action:manipulation; animation:btnFloat 4.5s ease-in-out infinite; backdrop-filter:blur(4px); line-height:1.6; text-align:center; display:none; }
+        @keyframes btnFloat { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+        .easter-btn.visible { display: block; }
+        .easter-btn:active { transform:scale(.95) !important; animation:none; }
+        #screen5 { justify-content:flex-start; padding:60px 24px 32px; overflow-y:auto; gap:14px; }
+        .curio-title { font-family:'Press Start 2P',monospace; font-size:clamp(10px,3.5vw,14px); color:#FFD93D; text-shadow:2px 2px 0 #000; text-align:center; line-height:1.6; }
+        .curio-body { font-family:'Press Start 2P',monospace; font-size:clamp(7px,2vw,9px); color:#F0E6FF; line-height:2.2; text-align:left; max-width:320px; background:rgba(255,255,255,.04); border:1px solid rgba(255,215,61,.15); border-radius:10px; padding:16px; }
+        .curio-body p { margin-bottom:14px; } .curio-body p:last-child { margin-bottom:0; }
+        .curio-hl { color: #FFD93D; }
+        #screen6 { gap: 16px; }
+        .quiz-counter { font-family:'Press Start 2P',monospace; font-size:8px; color:#C084FC; letter-spacing:2px; }
+        .quiz-question { font-family:'Press Start 2P',monospace; font-size:clamp(8px,2.5vw,10px); color:#F0E6FF; text-align:center; max-width:300px; line-height:2; }
+        .quiz-input-wrap { display:flex; flex-direction:column; align-items:center; gap:10px; width:100%; max-width:300px; }
+        .quiz-input { font-family:'Press Start 2P',monospace; font-size:clamp(8px,2.5vw,10px); width:100%; padding:12px 14px; background:rgba(255,255,255,.06); border:2px solid rgba(255,215,61,.3); border-radius:8px; color:#F0E6FF; outline:none; text-align:center; }
+        .quiz-input:focus { border-color:#FFD93D; }
+        .quiz-feedback { font-family:'Press Start 2P',monospace; font-size:clamp(8px,2.5vw,10px); text-align:center; min-height:24px; line-height:1.8; }
+        .quiz-feedback.ok { color:#4ADE80; } .quiz-feedback.err { color:#FF6B9D; }
+        .quiz-hint { font-family:'Press Start 2P',monospace; font-size:7px; color:#F0E6FF; opacity:.6; text-align:center; max-width:280px; line-height:2; min-height:32px; }
+        #screen7 { gap: 20px; }
+        .win-heart-canvas { width:80px; height:80px; image-rendering:pixelated; z-index:2; animation:winFloat1 2s ease-in-out infinite, heartGlow1 1.2s ease-in-out infinite; }
+        @keyframes heartGlow1 { 0%,100%{filter:drop-shadow(0 0 6px #FF6B9D) drop-shadow(0 0 12px #FF6B9D);} 50%{filter:drop-shadow(0 0 16px #FF6B9D) drop-shadow(0 0 32px #FF6B9D) drop-shadow(0 0 48px rgba(255,107,157,.5));} }
+        @keyframes winFloat1 { 0%,100%{transform:translateY(0px) scale(1);} 50%{transform:translateY(-12px) scale(1.15);} }
+        .win-msg { font-family:'Press Start 2P',monospace; font-size:clamp(10px,3.5vw,16px); color:#FFD93D; text-shadow:2px 2px 0 #000,-1px -1px 0 #FF6B9D; text-align:center; line-height:1.8; z-index:2; }
+
+        /* ─────────────────────────────────────────
+           JUEGO 2: PLANETARIA
+        ───────────────────────────────────────── */
+        #game2-wrap canvas { display: block; image-rendering: pixelated; }
+        #game2-wrap .overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            display:flex; flex-direction:column; justify-content:center; align-items:center;
+            background: rgba(3,0,18,.93); z-index:10; text-align:center; backdrop-filter:blur(6px);
+        }
+        #game2-wrap .overlay::before {
+            content:''; position:absolute; inset:0;
+            background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.012) 2px,rgba(255,255,255,.012) 4px);
+            pointer-events:none; z-index:0;
+        }
+        #game2-wrap .overlay > * { position:relative; z-index:1; }
+        #game2-wrap .hidden { display:none !important; }
+        #game2-wrap .btn {
+            position:relative; display:inline-block; padding:14px 36px;
+            font-family:'Orbitron',sans-serif; font-size:.85rem; font-weight:700;
+            letter-spacing:3px; text-transform:uppercase; color:#fff;
+            background:transparent; border:none; cursor:pointer; margin:8px; outline:none; transition:color .2s;
+            touch-action:manipulation; -webkit-tap-highlight-color:transparent;
+        }
+        #game2-wrap .btn::before {
+            content:''; position:absolute; inset:0;
+            background:linear-gradient(135deg,rgba(255,215,0,.12) 0%,rgba(255,77,170,.08) 100%);
+            clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);
+            border:1.5px solid rgba(255,215,0,.5); transition:background .25s,border-color .25s;
+        }
+        #game2-wrap .btn::after {
+            content:''; position:absolute; left:0; top:20%; bottom:20%; width:3px;
+            background:#ffd700; clip-path:polygon(0 0,100% 20%,100% 80%,0 100%); opacity:.7; transition:opacity .2s;
+        }
+        #game2-wrap .btn:hover::before { background:linear-gradient(135deg,rgba(255,215,0,.28) 0%,rgba(255,77,170,.2) 100%); border-color:#ffd700; }
+        #game2-wrap .btn:hover { color:#fff0a0; }
+        #game2-wrap .btn:hover::after { opacity:1; }
+        #game2-wrap .btn:active { transform:scale(.97); }
+        #game2-wrap .btn-primary::before { background:linear-gradient(135deg,rgba(255,215,0,.22) 0%,rgba(255,150,0,.15) 100%); border-color:#ffd700; box-shadow:0 0 20px rgba(255,215,0,.25),inset 0 0 20px rgba(255,215,0,.08); }
+        #game2-wrap .btn-primary { color:#fff0a0; text-shadow:0 0 12px #ffd700; }
+        #game2-wrap .btn-love::before { background:linear-gradient(135deg,rgba(255,77,170,.25) 0%,rgba(180,0,100,.15) 100%); border-color:#ff4daa; box-shadow:0 0 20px rgba(255,77,170,.3); }
+        #game2-wrap .btn-love::after { background:#ff4daa; }
+        #game2-wrap .btn-love { color:#ffbde2; text-shadow:0 0 12px #ff4daa; }
+        #game2-wrap .btn-back::before { border-color:rgba(255,255,255,.2); background:rgba(255,255,255,.04); }
+        #game2-wrap .btn-back::after { background:rgba(255,255,255,.4); opacity:.3; }
+        #game2-wrap .btn-back { color:rgba(255,255,255,.55); font-size:.75rem; }
+        #game2-wrap .btn-back:hover { color:#fff; }
+        #game2-wrap .main-title { font-family:'Orbitron',sans-serif; font-size:clamp(2rem,7vw,3.2rem); font-weight:900; letter-spacing:6px; margin-bottom:8px; background:linear-gradient(180deg,#fff 0%,#ffd700 60%,#ff9900 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter:drop-shadow(0 0 20px rgba(255,200,0,.5)); }
+        #game2-wrap .subtitle { font-size:.75rem; letter-spacing:5px; color:rgba(255,255,255,.35); margin-bottom:40px; font-family:'Orbitron',sans-serif; }
+        #ui-levels h2 { font-family:'Orbitron',sans-serif; font-size:.9rem; letter-spacing:5px; color:rgba(255,255,255,.45); margin-bottom:28px; }
+        .level-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin:0 0 28px 0; }
+        .level-card { width:130px; text-align:center; cursor:pointer; padding:18px 12px 14px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.1); border-radius:4px; clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%); transition:transform .2s,border-color .2s,background .2s; position:relative; }
+        .level-card:hover:not(.locked) { transform:translateY(-4px); border-color:rgba(255,215,0,.5); background:rgba(255,215,0,.07); }
+        .level-card.locked { opacity:.28; cursor:not-allowed; }
+        .level-card span { font-family:'Orbitron',sans-serif; font-size:.65rem; letter-spacing:3px; color:rgba(255,255,255,.7); }
+        .planet-wrap { width:72px; height:72px; margin:0 auto 12px; position:relative; }
+        .planet-canvas { width:72px; height:72px; border-radius:50%; }
+        #poetry-text { padding:36px; line-height:1.9; max-width:420px; font-size:1rem; color:rgba(255,255,255,.85); border-left:2px solid #ffd700; text-align:left; font-style:italic; position:relative; }
+        #poetry-text::before { content:'"'; font-size:5rem; color:#ffd700; opacity:.2; position:absolute; top:0; left:10px; line-height:1; font-family:serif; }
+        #win-title { font-family:'Orbitron',sans-serif; color:#39ff87; font-size:clamp(1.5rem,5vw,2.2rem); letter-spacing:4px; text-shadow:0 0 20px #39ff87; margin-bottom:12px; }
+        #win-msg { font-size:1.05rem; margin:20px; line-height:1.6; color:rgba(255,255,255,.7); }
+        #special-win { max-width:88%; font-size:1.1rem; line-height:1.8; color:#ffdd80; text-shadow:0 0 10px rgba(255,215,0,.4); white-space:pre-line; font-family:'Space Mono',monospace; letter-spacing:.5px; border-top:1px solid rgba(255,215,0,.2); border-bottom:1px solid rgba(255,215,0,.2); padding:28px 16px; margin:12px; }
+        .p2-heart { position:absolute; font-size:26px; animation:heartFloat2 2.8s infinite ease-in-out; filter:drop-shadow(0 0 10px rgba(255,50,100,.8)); }
+        @keyframes heartFloat2 { 0%,100%{transform:translateY(0) scale(1);opacity:.8;} 50%{transform:translateY(-28px) scale(1.25);opacity:1;} }
+        #pixel-astro-container { position:relative; width:120px; height:160px; margin-bottom:18px; }
+        .deco-line { width:160px; height:1px; background:linear-gradient(90deg,transparent,#ffd700,transparent); margin:0 auto 32px; }
+        #ui-data .glass-panel { max-width:85%; text-align:left; font-size:.9rem; }
+        .glass-panel h2 { color:#ffd700; text-align:center; font-family:'Orbitron',sans-serif; }
+
+        /* ═══════════════════════════════════════════
+           JUEGO 3: CARAMELITO
+        ═══════════════════════════════════════════ */
+        #game3-wrap {
+            background: #87CEEB;
+            overflow: hidden;
+        }
+        #caramelito-canvas {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+        }
+
+        /* Caramelito UI overlays */
+        #c-lobby, #c-poem-modal, #c-gameover, #c-paused {
+            position: absolute; inset: 0; z-index: 20;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #c-lobby.hidden, #c-poem-modal.hidden, #c-gameover.hidden, #c-paused.hidden { display: none; }
+
+        /* Candy sky background for lobby */
+        #c-lobby {
+            background: linear-gradient(180deg, #ffd6e8 0%, #c8e6ff 40%, #fffde0 100%);
+        }
+
+        .c-title {
+            font-family: 'Pacifico', cursive;
+            font-size: clamp(3rem, 14vw, 5.5rem);
+            color: #FFD700;
+            text-shadow: 4px 4px 0 #e67e00, -2px -2px 0 #ff6b9d, 0 0 30px rgba(255,215,0,.6);
+            margin-bottom: 8px;
+            animation: cTitleBounce 2s ease-in-out infinite;
+        }
+        @keyframes cTitleBounce {
+            0%,100% { transform: translateY(0) rotate(-1deg); }
+            50% { transform: translateY(-8px) rotate(1deg); }
+        }
+
+        .c-subtitle-lobby {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem; letter-spacing: 3px;
+            color: #ff6b9d; margin-bottom: 36px;
+            opacity: .8;
+        }
+
+        /* Floating candy decorations on lobby */
+        .c-deco {
+            position: absolute; pointer-events: none;
+            font-size: var(--fs, 28px);
+            animation: cDecoFloat var(--d,6s) ease-in-out infinite var(--dl,0s);
+            opacity: .7;
+        }
+        @keyframes cDecoFloat {
+            0%,100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(15deg); }
+        }
+
+        /* Candy cloud SVG in lobby */
+        .c-clouds { position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; }
+
+        .c-btn {
+            font-family: 'Pacifico', cursive;
+            font-size: clamp(1rem, 4vw, 1.3rem);
+            padding: 14px 40px;
+            border: none; border-radius: 50px; cursor: pointer;
+            margin: 8px;
+            transition: transform .15s, box-shadow .15s;
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+            letter-spacing: 1px;
+        }
+        .c-btn:active { transform: scale(.95); }
+
+        .c-btn-play {
+            background: linear-gradient(135deg, #ff6b9d, #e91e8c);
+            color: white;
+            box-shadow: 0 6px 0 #9b0060, 0 8px 20px rgba(255,107,157,.4);
+        }
+        .c-btn-play:hover { box-shadow: 0 8px 0 #9b0060, 0 12px 28px rgba(255,107,157,.5); transform: translateY(-2px); }
+
+        .c-btn-poem {
+            background: linear-gradient(135deg, #ffd700, #ff9900);
+            color: white;
+            box-shadow: 0 6px 0 #c06000, 0 8px 20px rgba(255,215,0,.4);
+        }
+        .c-btn-poem:hover { box-shadow: 0 8px 0 #c06000, 0 12px 28px rgba(255,215,0,.5); transform: translateY(-2px); }
+
+        .c-credits {
+            position: absolute; bottom: 16px;
+            font-family: 'Space Mono', monospace; font-size: 0.6rem;
+            color: rgba(0,0,0,.35); letter-spacing: 3px;
+        }
+
+        /* Poem modal */
+        #c-poem-modal {
+            background: rgba(0,0,0,.75);
+            backdrop-filter: blur(8px);
+        }
+        .c-poem-box {
+            background: linear-gradient(135deg, #fff9e6, #ffe0f0);
+            border-radius: 20px;
+            padding: 32px 28px;
+            max-width: 340px; width: 90%;
+            border: 3px solid rgba(255,215,0,.5);
+            box-shadow: 0 0 40px rgba(255,107,157,.3);
+            text-align: center;
+        }
+        .c-poem-title {
+            font-family: 'Pacifico', cursive;
+            font-size: 1.4rem; color: #e91e8c; margin-bottom: 16px;
+        }
+        .c-poem-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.85rem; line-height: 2; color: #4a0030;
+            font-style: italic; margin-bottom: 20px;
+        }
+        .c-btn-close {
+            font-family: 'Pacifico', cursive; font-size: 1rem;
+            padding: 10px 28px; background: linear-gradient(135deg, #e91e8c, #c4006e);
+            color: white; border: none; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 4px 0 #7a0040;
+            touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+        }
+        .c-btn-close:active { transform: scale(.95); }
+
+        /* Game HUD */
+        #c-hud {
+            position: absolute; inset: 0; pointer-events: none; z-index: 10;
+        }
+        #c-score-display {
+            position: absolute; top: 14px; left: 16px;
+            font-family: 'Pacifico', cursive; font-size: 1.2rem;
+            color: white; text-shadow: 2px 2px 0 rgba(0,0,0,.5);
+        }
+        #c-lives-display {
+            position: absolute; top: 14px; right: 16px;
+            display: flex; gap: 4px; align-items: center;
+        }
+        .c-life-heart {
+            font-size: 22px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+            transition: transform .2s;
+        }
+        .c-life-heart.lost { opacity: .2; filter: grayscale(1); }
+
+        #c-powerup-banner {
+            position: absolute; top: 52px; left: 50%; transform: translateX(-50%);
+            background: rgba(255,215,0,.9); color: #4a0030; border-radius: 20px;
+            padding: 4px 16px; font-family: 'Pacifico', cursive; font-size: 0.85rem;
+            white-space: nowrap; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+            opacity: 0; transition: opacity .3s;
+        }
+        #c-powerup-banner.visible { opacity: 1; }
+
+        /* Game Over screen */
+        #c-gameover {
+            background: rgba(0,0,0,.82);
+            backdrop-filter: blur(10px);
+        }
+        .c-go-title {
+            font-family: 'Pacifico', cursive;
+            font-size: clamp(2rem, 8vw, 3rem);
+            color: #ff6b9d;
+            text-shadow: 3px 3px 0 #7a003d;
+            margin-bottom: 12px;
+        }
+        .c-go-score {
+            font-family: 'Space Mono', monospace;
+            font-size: 1rem; color: #ffd700; letter-spacing: 3px; margin-bottom: 28px;
+        }
+        .c-go-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+        /* Mobile touch controls hint */
+        #c-touch-hint {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            font-family: 'Space Mono', monospace; font-size: 0.65rem;
+            color: rgba(255,255,255,.45); text-align: center; pointer-events: none;
+            letter-spacing: 2px; z-index: 15;
+        }
+
+        /* Score popup */
+        .score-popup {
+            position: absolute;
+            font-family: 'Pacifico', cursive;
+            font-size: 1.1rem;
+            pointer-events: none;
+            animation: scorePopFloat 1.2s ease-out forwards;
+            z-index: 30;
+        }
+        @keyframes scorePopFloat {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-60px) scale(1.3); }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     LOBBY / LIMBO CENTRAL
+═══════════════════════════════════════════ -->
+<div id="lobby">
+    <div id="lobby-stars"></div>
+
+    <!-- Floating decorations -->
+    <span class="lobby-float" style="left:8%;top:12%;--d:7s;--dl:0s;--fs:22px">💛</span>
+    <span class="lobby-float" style="left:85%;top:18%;--d:9s;--dl:1s;--fs:18px">🌙</span>
+    <span class="lobby-float" style="left:15%;top:75%;--d:8s;--dl:.5s;--fs:20px">⭐</span>
+    <span class="lobby-float" style="left:80%;top:70%;--d:6s;--dl:2s;--fs:16px">🍬</span>
+    <span class="lobby-float" style="left:50%;top:88%;--d:10s;--dl:.3s;--fs:14px">💖</span>
+
+    <div class="lobby-inner">
+        <p class="lobby-subtitle">✦ para mi luna ✦</p>
+        <h1 class="lobby-title">ARCADE<br>waza</h1>
+
+        <!-- Relationship timer -->
+        <div class="lobby-timer-wrap">
+            <div class="lobby-timer-label">✦ JUNTOS DESDE EL 24 ENE 2026 ✦</div>
+            <div class="lobby-timer" id="lobby-timer">cargando...</div>
+        </div>
+
+        <!-- Game selector -->
+        <div class="lobby-games">
+            <div class="game-card" onclick="launchGame(1)">
+                <span class="game-card-icon">🌙</span>
+                <div class="game-card-info">
+                    <div class="game-card-name">DE LA LUNA A LA TIERRA</div>
+                    <div class="game-card-desc">poesía interactiva · quiz</div>
+                </div>
+                <span class="game-card-arrow">›</span>
+            </div>
+            <div class="game-card" onclick="launchGame(2)">
+                <span class="game-card-icon">🪐</span>
+                <div class="game-card-info">
+                    <div class="game-card-name">PLANETARIA</div>
+                    <div class="game-card-desc">plataformas espaciales</div>
+                </div>
+                <span class="game-card-arrow">›</span>
+            </div>
+            <div class="game-card" onclick="launchGame(3)">
+                <span class="game-card-icon">🍬</span>
+                <div class="game-card-info">
+                    <div class="game-card-name">CARAMELITO</div>
+                    <div class="game-card-desc">carreras dulces · endless</div>
+                </div>
+                <span class="game-card-arrow">›</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- GLOBAL BACK BUTTON -->
+<button id="global-back" onclick="returnToLobby()">← LOBBY</button>
+
+<!-- ═══════════════════════════════════════════
+     JUEGO 1: DE LA LUNA A LA TIERRA
+═══════════════════════════════════════════ -->
+<div id="game1-wrap" class="game-wrapper">
+    <div class="stars-g1" id="stars-g1"></div>
+
+    <!-- PANTALLA 1 -->
+    <div id="screen1" class="screen active">
+        <p class="subtitle">poesia de David para un astro</p>
+        <h1 class="title">DE LA LUNA<br>A LA TIERRA</h1>
+        <button class="btn" id="btnComenzar">▶ COMENZAR</button>
+    </div>
+
+    <!-- PANTALLA 2 -->
+    <div id="screen2" class="screen">
+        <div class="scene-sprites">
+            <canvas class="moon-sprite s0" id="moonSprite" width="10" height="10"></canvas>
+            <canvas class="earth-sprite" id="earthSprite" width="10" height="10"></canvas>
+        </div>
+        <p class="scene-counter" id="sceneCounter">✦ 1 / 4 ✦</p>
+        <div class="poem-box"><p class="poem-text" id="poemText"></p></div>
+        <button class="btn" id="btnNext" style="visibility:hidden">SIGUIENTE ›</button>
+    </div>
+
+    <!-- PANTALLA 3 -->
+    <div id="screen3" class="screen">
+        <p class="subtitle">— el encuentro —</p>
+        <div class="meet-area">
+            <canvas class="moon-meet" id="moonMeet" width="12" height="12"></canvas>
+            <canvas class="earth-meet" id="earthMeet" width="12" height="12"></canvas>
+        </div>
+        <p class="bubble" id="bubble">&nbsp;</p>
+        <p class="interact-hint">toca la luna 🌙 o la tierra 🌍</p>
+        <button class="btn" id="btnFinal">VER FINAL ›</button>
+    </div>
+
+    <!-- PANTALLA 4 -->
+    <div id="screen4" class="screen">
+        <div class="hearts-layer" id="heartsLayer"></div>
+        <p class="final-msg">FELIZ MES,<br>MI AMOR 💛</p>
+        <p class="final-sub">como la luna a la tierra,<br>gracias por ser mi fiel luna.</p>
+        <div class="final-btns">
+            <button class="btn btn-rosa"    id="btnRestart">🔁 EMPEZAR</button>
+            <button class="btn btn-magenta" id="btnQuiz">MINIJUEGO</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 5 -->
+    <div id="screen5" class="screen">
+        <p class="curio-title">🌕 DATOS DE<br>LA LUNA</p>
+        <div class="curio-body">
+            <p>El primer hombre en pisarla fue <span class="curio-hl">Neil Armstrong</span> en <span class="curio-hl">1969</span>, durante la misión <span class="curio-hl">Apollo 11</span>.</p>
+            <p>La primera sonda fue la soviética <span class="curio-hl">Luna 2</span>, lanzada el <span class="curio-hl">12 de septiembre de 1959</span>.</p>
+            <p>La Luna está a unos <span class="curio-hl">384,400 km</span> de la Tierra, tiene una gravedad <span class="curio-hl">6 veces menor</span>, y siempre vemos la misma cara porque tarda lo mismo en girar sobre su eje que en orbitar la Tierra.</p>
+        </div>
+        <button class="btn" id="btnBackFromCurio">← VOLVER</button>
+    </div>
+
+    <!-- PANTALLA 6 -->
+    <div id="screen6" class="screen">
+        <p class="quiz-counter" id="quizCounter">✦ 1 / 4 ✦</p>
+        <p class="quiz-question" id="quizQuestion"></p>
+        <div class="quiz-input-wrap">
+            <input class="quiz-input" id="quizInput" type="text" placeholder="tu respuesta..." autocomplete="off" autocorrect="off" spellcheck="false">
+            <button class="btn" id="btnAnswer">RESPONDER ›</button>
+        </div>
+        <p class="quiz-feedback" id="quizFeedback"></p>
+        <p class="quiz-hint"     id="quizHint"></p>
+        <button class="btn btn-red" id="btnQuizBack">← REGRESAR</button>
+    </div>
+
+    <!-- PANTALLA 7 -->
+    <div id="screen7" class="screen">
+        <div class="hearts-layer" id="heartsLayer7"></div>
+        <canvas class="win-heart-canvas" id="winHeart" width="16" height="16"></canvas>
+        <p class="win-msg">¡ERES MUY<br>INTELIGENTE<br>AMOR!</p>
+        <button class="btn" id="btnWinBack">← VOLVER</button>
+    </div>
+
+    <button class="easter-btn" id="easterBtn">"amor, no<br>entendi"</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     JUEGO 2: PLANETARIA
+═══════════════════════════════════════════ -->
+<div id="game2-wrap" class="game-wrapper">
+    <!-- MENÚ -->
+    <div id="ui-menu" class="overlay">
+        <p class="subtitle">Te amo</p>
+        <h1 class="main-title">planetaria</h1>
+        <div class="deco-line"></div>
+        <button class="btn btn-primary" onclick="showLevels()">▶ Jugar</button>
+        <button class="btn" onclick="g2changeState('POETRY')">✦ POESÍA</button>
+        <button class="btn" onclick="g2changeState('DATA')">★♠Datos♠★</button>
+    </div>
+
+    <!-- MAPA DE NIVELES -->
+    <div id="ui-levels" class="overlay hidden">
+        <h2>PLANETAS</h2>
+        <div class="level-grid">
+            <div class="level-card" onclick="selectLevel(0)">
+                <div class="planet-wrap"><canvas class="planet-canvas" id="p0" width="72" height="72"></canvas></div>
+                <span>LUNA</span>
+            </div>
+            <div id="card-1" class="level-card locked" onclick="selectLevel(1)">
+                <div class="planet-wrap"><canvas class="planet-canvas" id="p1" width="72" height="72"></canvas></div>
+                <span>MARTE</span>
+            </div>
+            <div id="card-2" class="level-card locked" onclick="selectLevel(2)">
+                <div class="planet-wrap"><canvas class="planet-canvas" id="p2" width="72" height="72"></canvas></div>
+                <span>JÚPITER</span>
+            </div>
+            <div id="card-3" class="level-card locked" onclick="selectLevel(3)">
+                <div class="planet-wrap"><canvas class="planet-canvas" id="p3" width="72" height="72"></canvas></div>
+                <span>SATURNO</span>
+            </div>
+        </div>
+        <button onclick="showSpecialMessage()" id="special-btn" style="display:none;" class="btn btn-love">❤ VER MENSAJE ESPECIAL</button>
+        <button onclick="g2changeState('MENU')" class="btn btn-back" style="margin-top:12px;">← VOLVER</button>
+    </div>
+
+    <!-- POESÍA -->
+    <div id="ui-poetry" class="overlay hidden">
+        <div id="poetry-text">
+            Cruzaría el espacio<br>
+            esquivaría cada trampa de un podrido mundo<br>
+            y viajaría hasta el último planeta<br>
+            solo por ver la sonrisa tuya.<br><br>
+            Eres un universo entero <br>
+            Perfectamente imperfecta.
+        </div>
+        <button onclick="g2changeState('MENU')" class="btn btn-back" style="margin-top:28px;">← VOLVER</button>
+    </div>
+
+    <!-- DATOS -->
+    <div id="ui-data" class="overlay hidden">
+        <div class="glass-panel" style="max-width:85%;text-align:left;font-size:.9rem;">
+            <h2 style="color:#ffd700;text-align:center;font-family:'Orbitron',sans-serif;margin-bottom:16px;">¿SABÍAS QUÉ? 🚀</h2>
+            <ul style="list-style:none;padding:0;line-height:1.6;font-family:'Space Mono',monospace;font-size:.8rem;">
+                <li>⭐ <b>Marte</b>: El planeta que le sigue a la tierra, su dia dura 39min +</li><br>
+                <li>⭐ <b>Venus</b>: es el planeta más caliente, ¡aunque Mercurio esté más cerca del Sol!</li><br>
+                <li>🪐 <b>Saturno</b>: Planeta gaseoso, su aro es realmente asteroides dando vueltas.</li><br>
+                <li>🌑 <b>Luna</b>: No es un planeta, sino un satélite natural de la tierra xd jeje.</li><br>
+                <li>💖💕 Mi dato favorito: Eres la persona más increíble de este sistema solar.</li>
+            </ul>
+            <center><button onclick="g2changeState('MENU')" class="btn btn-back" style="margin-top:20px;">← VOLVER</button></center>
+        </div>
+    </div>
+
+    <!-- WIN -->
+    <div id="ui-win" class="overlay hidden">
+        <h1 id="win-title">¡LO LOGRASTE!</h1>
+        <p id="win-msg">"Llegaste sana y salva mi amorcito 💕"</p>
+        <button onclick="showLevels()" class="btn btn-primary">VOLVER AL MAPA</button>
+    </div>
+
+    <!-- MENSAJE ESPECIAL -->
+    <div id="ui-special-win" class="overlay hidden">
+        <div id="pixel-astro-container">
+            <canvas id="astro-canvas" width="120" height="160" style="image-rendering:pixelated;"></canvas>
+        </div>
+        <div class="p2-heart" style="left:10%;top:30%;animation-delay:0s;">💕</div>
+        <div class="p2-heart" style="left:18%;top:15%;animation-delay:.4s;">💖</div>
+        <div class="p2-heart" style="right:10%;top:38%;animation-delay:.8s;">💕</div>
+        <div class="p2-heart" style="right:20%;top:18%;animation-delay:1.2s;">💗</div>
+        <div id="special-win"></div>
+        <button onclick="showLevels()" class="btn btn-back" style="margin-top:28px;">VOLVER AL MAPA</button>
+    </div>
+
+    <canvas id="game2-canvas"></canvas>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     JUEGO 3: CARAMELITO
+═══════════════════════════════════════════ -->
+<div id="game3-wrap" class="game-wrapper">
+    <canvas id="caramelito-canvas"></canvas>
+
+    <!-- HUD -->
+    <div id="c-hud" class="hidden">
+        <div id="c-score-display">🍬 0</div>
+        <div id="c-lives-display">
+            <span class="c-life-heart" id="c-heart-1">❤️</span>
+            <span class="c-life-heart" id="c-heart-2">❤️</span>
+            <span class="c-life-heart" id="c-heart-3">❤️</span>
+        </div>
+        <div id="c-powerup-banner">✨ x2 SCORE Waza!</div>
+    </div>
+
+    <!-- LOBBY CARAMELITO -->
+    <div id="c-lobby">
+        <!-- Cotton candy clouds (drawn via CSS) -->
+        <svg class="c-clouds" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice">
+            <ellipse cx="60" cy="50" rx="55" ry="30" fill="#ffc8e8" opacity=".7"/>
+            <ellipse cx="90" cy="40" rx="45" ry="28" fill="#ffd6ef" opacity=".8"/>
+            <ellipse cx="35" cy="55" rx="35" ry="22" fill="#ffbfe0" opacity=".6"/>
+            <ellipse cx="280" cy="35" rx="60" ry="28" fill="#c8e8ff" opacity=".7"/>
+            <ellipse cx="310" cy="28" rx="45" ry="24" fill="#d8f0ff" opacity=".8"/>
+            <ellipse cx="260" cy="42" rx="38" ry="20" fill="#b8e0ff" opacity=".6"/>
+            <ellipse cx="170" cy="15" rx="50" ry="22" fill="#ffecc8" opacity=".65"/>
+            <ellipse cx="195" cy="8" rx="38" ry="20" fill="#fff0d0" opacity=".7"/>
+        </svg>
+
+        <!-- Candy decorations -->
+        <span class="c-deco" style="left:5%;top:20%;--d:7s;--dl:0s;--fs:32px">🍭</span>
+        <span class="c-deco" style="right:8%;top:25%;--d:9s;--dl:1s;--fs:28px">🍬</span>
+        <span class="c-deco" style="left:12%;bottom:25%;--d:8s;--dl:.5s;--fs:24px">💝</span>
+        <span class="c-deco" style="right:10%;bottom:30%;--d:6s;--dl:2s;--fs:26px">🍫</span>
+        <span class="c-deco" style="left:45%;top:8%;--d:11s;--dl:.8s;--fs:22px">⭐</span>
+        <span class="c-deco" style="right:28%;top:12%;--d:7.5s;--dl:1.5s;--fs:20px">🌸</span>
+
+        <div style="position:relative;z-index:2;text-align:center;">
+            <h1 class="c-title">Caramelito</h1>
+            <p class="c-subtitle-lobby">✦ un juego dulce para ti ✦</p>
+            <button class="c-btn c-btn-play" onclick="startCaramelito()">▶ Jugar</button>
+            <button class="c-btn c-btn-poem" onclick="document.getElementById('c-poem-modal').classList.remove('hidden')">📜 Poesía</button>
+        </div>
+        <p class="c-credits">hecho por dvd</p>
+    </div>
+
+    <!-- POEM MODAL -->
+    <div id="c-poem-modal" class="hidden">
+        <div class="c-poem-box">
+            <div class="c-poem-title">🍬 Para Ti 🍬</div>
+            <div class="c-poem-text">
+                Eres dulce para mi amargura,<br>
+                suave es mi tibio corazón en vida,<br>
+                y cuando sonríes, vivo en vos<br>
+                se llena de ilusión mi vida.<br><br>
+                No hay dolor que pases<br>
+                que no quiera sanar<br>
+                si al final del camino<br>
+                estás tú al esperar.
+            </div>
+            <button class="c-btn-close" onclick="document.getElementById('c-poem-modal').classList.add('hidden')">✕ cerrar</button>
+        </div>
+    </div>
+
+    <!-- GAME OVER -->
+    <div id="c-gameover" class="hidden">
+        <div class="c-go-title">valió quesillo 💔</div>
+        <div class="c-go-score" id="c-go-score-text">Score: 0</div>
+        <div class="c-go-btns">
+            <button class="c-btn c-btn-play" onclick="restartCaramelito()">🔁 Reintentar</button>
+            <button class="c-btn c-btn-poem" onclick="showCaramelitoLobby()">🏠 Menú</button>
+        </div>
+    </div>
+
+    <div id="c-touch-hint" class="hidden">toca izq/der para moverse</div>
+</div>
+
+
+// ─── LOBBY MANAGER ───────────────────────────────
+//waza
+<script> // Cambiado al 24 de Enero de 2026 a las 00:00:00
+const RELATIONSHIP_START = new Date('2026-01-24T00:00:00');
+
+function updateTimer() {
+    const now = new Date();
+    const diff = now - RELATIONSHIP_START;
+    
+    // Si por alguna razón el reloj del cliente está desincronizado y es antes de la fecha:
+    if (diff < 0) {
+        document.getElementById('lobby-timer').textContent = "0d 00h 00m 00s";
+        return;
+    }
+
+    const days = Math.floor(diff / 86400000);
+    const hours = Math.floor((diff % 86400000) / 3600000);
+    const mins = Math.floor((diff % 3600000) / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    
+    document.getElementById('lobby-timer').textContent =
+        `${days}d ${String(hours).padStart(2,'0')}h ${String(mins).padStart(2,'0')}m ${String(secs).padStart(2,'0')}s`;
+}
+updateTimer();
+setInterval(updateTimer, 1000);
+
+// Lobby stars
+(function() {
+    const c = document.getElementById('lobby-stars');
+    for (let i = 0; i < 120; i++) {
+        const s = document.createElement('div'); s.className = 'lobby-star';
+        const sz = Math.random() * 3 + 1;
+        s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${(Math.random()*2+1.5).toFixed(1)}s;--delay:${(Math.random()*3).toFixed(1)}s;`;
+        c.appendChild(s);
+    }
+})();
+
+function launchGame(n) {
+    document.getElementById('lobby').classList.add('hidden');
+    document.getElementById('global-back').classList.add('visible');
+    document.querySelectorAll('.game-wrapper').forEach(w => w.classList.remove('active'));
+    document.getElementById('game'+n+'-wrap').classList.add('active');
+    if (n === 1) initGame1();
+    if (n === 2) initGame2();
+    if (n === 3) initGame3();
+}
+
+function returnToLobby() {
+    document.getElementById('lobby').classList.remove('hidden');
+    document.getElementById('global-back').classList.remove('visible');
+    document.querySelectorAll('.game-wrapper').forEach(w => w.classList.remove('active'));
+    // Pause/cleanup
+    if (typeof g3Running !== 'undefined' && g3Running) { g3Running = false; }
+}
+
+</script>
+
+<!-- ═══════════════════════════════════════════
+     SCRIPTS: JUEGO 1
+═══════════════════════════════════════════ -->
+<script>
+// ─── PIXEL ART DATA ───────────────────────────────
+const HEART_MAP = [
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0],
+    [0,1,1,2,1,1,0,0,1,1,2,1,1,0,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+    [0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],[0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+    [0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0],[0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0],
+    [0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0],[0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+];
+const HC = { 0:'transparent', 1:'#FF6B9D', 2:'#FFB3CC' };
+const MOON_MAP = [
+    [0,0,1,1,1,1,1,1,0,0],[0,1,1,1,1,1,1,1,1,0],[1,1,2,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1],[1,1,1,1,1,1,1,1,1,1],
+    [1,1,1,1,1,1,1,1,1,1],[1,1,2,1,1,1,1,1,1,1],[0,1,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,1,1,0,0]
+];
+const EARTH_MAP = [
+    [0,0,1,1,1,1,1,1,0,0],[0,1,1,2,2,1,1,1,1,0],[1,1,2,2,2,2,1,1,1,1],
+    [1,1,2,2,1,1,1,2,1,1],[1,1,1,1,1,2,2,2,1,1],[1,1,1,2,2,2,1,1,1,1],
+    [1,1,2,2,1,1,1,1,1,1],[1,1,1,1,1,1,2,1,1,1],[0,1,1,1,1,1,1,1,1,0],
+    [0,0,1,1,1,1,1,1,0,0]
+];
+const MC = { 0:'transparent', 1:'#FFD93D', 2:'#FFF176' };
+const EC = { 0:'transparent', 1:'#3B82F6', 2:'#4ADE80' };
+
+function drawPixel(el, map, colors) {
+    const ctx = el.getContext('2d'); ctx.clearRect(0,0,el.width,el.height);
+    map.forEach((row,y) => row.forEach((v,x) => { if(!v) return; ctx.fillStyle=colors[v]; ctx.fillRect(x,y,1,1); }));
+}
+
+function initGame1() {
+    // Init stars
+    const starsEl = document.getElementById('stars-g1');
+    starsEl.innerHTML = '';
+    for(let i=0;i<55;i++){
+        const s=document.createElement('div'); s.className='star';
+        const sz=Math.random()*3+1.5;
+        s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--dur:${(Math.random()*2+1.5).toFixed(1)}s;--delay:${(Math.random()*3).toFixed(1)}s;opacity:${(Math.random()*.5+.1).toFixed(2)};`;
+        starsEl.appendChild(s);
+    }
+    // Draw sprites
+    const moon=document.getElementById('moonSprite');
+    const earth=document.getElementById('earthSprite');
+    const moonM=document.getElementById('moonMeet');
+    const earthM=document.getElementById('earthMeet');
+    if(moon) drawPixel(moon,MOON_MAP,MC);
+    if(earth) drawPixel(earth,EARTH_MAP,EC);
+    if(moonM) drawPixel(moonM,MOON_MAP,MC);
+    if(earthM) drawPixel(earthM,EARTH_MAP,EC);
+    const hc=document.getElementById('winHeart'); if(hc) drawPixel(hc,HEART_MAP,HC);
+    // Go to screen1
+    goTo1('screen1');
+}
+
+function goTo1(id){
+    document.querySelectorAll('#game1-wrap .screen').forEach(s=>s.classList.remove('active'));
+    const t = document.getElementById(id); if(t) t.classList.add('active');
+    const eb=document.getElementById('easterBtn');
+    if(eb) eb.classList.toggle('visible', id==='screen4');
+}
+
+// Poem scenes
+const scenes1=[
+    {poem:"Como la luna a la tierra.\nTal como le es fiel el astro\ncomo le es fiel sin necesidad\nde estrella\namaría sin llorar pero con pena,\npor no poder igualar\ntal afrenta",moonClass:'s0'},
+    {poem:"Como es de hermoso mi cielo\nperdona a la tierra\npor sembrar tanta melancolía\na su fiel rastro\nqué hermoso es mi astro",moonClass:'s1'},
+    {poem:"Qué cercano me siento\na tus penas\nqué lejos es la distancia\na tu planeta",moonClass:'s2'},
+    {poem:"No soy ajeno de tu naturaleza,\ndeseo acompañar\nverte junto a estrellas.",moonClass:'s3'}
+];
+let curScene1=0, twTimer1=null, typing1=false;
+
+document.getElementById('btnComenzar').addEventListener('click',()=>{ goTo1('screen2'); showScene1(0); });
+
+function showScene1(idx){
+    clearTimeout(twTimer1); typing1=true; curScene1=idx;
+    const {poem,moonClass}=scenes1[idx];
+    const ms=document.getElementById('moonSprite'); if(ms) ms.className='moon-sprite '+moonClass;
+    document.getElementById('sceneCounter').textContent=`✦ ${idx+1} / ${scenes1.length} ✦`;
+    const btn=document.getElementById('btnNext'); btn.style.visibility='hidden';
+    const el=document.getElementById('poemText'); el.textContent=''; let i=0;
+    function tick(){ if(i<=poem.length){el.textContent=poem.slice(0,i);i++;twTimer1=setTimeout(tick,55);}else{typing1=false;btn.style.visibility='visible';} }
+    tick();
+}
+
+document.getElementById('btnNext').addEventListener('click',()=>{
+    if(typing1){clearTimeout(twTimer1);typing1=false;document.getElementById('poemText').textContent=scenes1[curScene1].poem;document.getElementById('btnNext').style.visibility='visible';return;}
+    curScene1<scenes1.length-1 ? showScene1(curScene1+1) : goTo1('screen3');
+});
+
+const bubble1=document.getElementById('bubble'); let bTimer1=null;
+function showBubble1(msg){clearTimeout(bTimer1);bubble1.textContent=msg;bTimer1=setTimeout(()=>{bubble1.textContent='\u00a0';},2500);}
+document.getElementById('moonMeet').addEventListener('click',()=>showBubble1('Siempre fiel a ti 🌙'));
+document.getElementById('earthMeet').addEventListener('click',()=>showBubble1('Aquí te espero 🌍'));
+document.getElementById('btnFinal').addEventListener('click',()=>{goTo1('screen4');spawnHearts1('heartsLayer');});
+
+function spawnHearts1(layerId){
+    const layer=document.getElementById(layerId); layer.innerHTML='';
+    for(let i=0;i<22;i++) setTimeout(()=>{
+        const h=document.createElement('div'); h.className='g1-heart'; h.textContent='♥';
+        h.style.cssText=`left:${Math.random()*90+5}%;bottom:0;animation-duration:${(Math.random()*2+3).toFixed(1)}s;animation-delay:${(Math.random()*1).toFixed(1)}s;font-size:${Math.random()*14+14}px;`;
+        layer.appendChild(h); setTimeout(()=>h.remove(),6000);
+    },i*180);
+}
+
+document.getElementById('btnRestart').addEventListener('click',()=>{document.getElementById('heartsLayer').innerHTML='';curScene1=0;goTo1('screen1');});
+document.getElementById('btnQuiz').addEventListener('click',()=>{document.getElementById('heartsLayer').innerHTML='';startQuiz1();});
+document.getElementById('easterBtn').addEventListener('click',()=>goTo1('screen5'));
+document.getElementById('btnBackFromCurio').addEventListener('click',()=>goTo1('screen4'));
+
+const questions1=[
+    {q:'¿A qué distancia está la Luna de la Tierra?',valid:(r)=>{const n=r.replace(/[^0-9]/g,'');return n==='384400'||/384[,.]?400/i.test(r);}},
+    {q:'¿Quién fue el primer hombre en pisar la Luna?',valid:(r)=>/neil\s*armstrong/i.test(r)},
+    {q:'¿En qué año llegó el Apollo 11 a la Luna?',valid:(r)=>/1969/.test(r.replace(/\s/g,''))},
+    {q:'¿Cómo se llamó la primera sonda que llegó a la Luna?',valid:(r)=>/luna\s*2/i.test(r)||/luna2/i.test(r.replace(/\s/g,''))}
+];
+let qIdx1=0;
+function startQuiz1(){ qIdx1=0; goTo1('screen6'); loadQ1(); }
+function loadQ1(){
+    document.getElementById('quizCounter').textContent=`✦ ${qIdx1+1} / ${questions1.length} ✦`;
+    document.getElementById('quizQuestion').textContent=questions1[qIdx1].q;
+    document.getElementById('quizInput').value='';
+    document.getElementById('quizFeedback').textContent=''; document.getElementById('quizFeedback').className='quiz-feedback';
+    document.getElementById('quizHint').textContent='';
+    setTimeout(()=>document.getElementById('quizInput').focus(),300);
+}
+function checkAnswer1(){
+    const raw=document.getElementById('quizInput').value.trim(); if(!raw) return;
+    const fb=document.getElementById('quizFeedback'); const hint=document.getElementById('quizHint');
+    if(questions1[qIdx1].valid(raw)){
+        fb.textContent='¡Correcto! ✨'; fb.className='quiz-feedback ok'; hint.textContent='';
+        setTimeout(()=>{ qIdx1++; qIdx1<questions1.length ? loadQ1() : (goTo1('screen7'),spawnHearts1('heartsLayer7')); },900);
+    } else {
+        fb.textContent='¡Incorrecto!'; fb.className='quiz-feedback err';
+        hint.textContent='Lee bien las curiosidades de la Luna e inténtalo de nuevo 🌙';
+        setTimeout(()=>goTo1('screen4'),2800);
+    }
+}
+document.getElementById('btnAnswer').addEventListener('click',checkAnswer1);
+document.getElementById('quizInput').addEventListener('keydown',(e)=>{ if(e.key==='Enter') checkAnswer1(); });
+document.getElementById('btnQuizBack').addEventListener('click',()=>goTo1('screen4'));
+document.getElementById('btnWinBack').addEventListener('click',()=>{ document.getElementById('heartsLayer7').innerHTML=''; goTo1('screen4'); });
+</script>
+
+<!-- ═══════════════════════════════════════════
+     SCRIPTS: JUEGO 2 (PLANETARIA)
+═══════════════════════════════════════════ -->
+<script>
+let g2State = 'MENU';
+let g2currentLvlIdx = 0;
+let g2unlocked = [true, false, false, false];
+const g2levels = [
+    { name:'LUNA',    color:'#BDC3C7', goal:1500, traps:false },
+    { name:'MARTE',   color:'#E74C3C', goal:2500, traps:false },
+    { name:'JÚPITER', color:'#E67E22', goal:3500, traps:true },
+    { name:'SATURNO', color:'#F1C40F', goal:4500, traps:true }
+];
+let g2player = { x:0, y:0, w:22, h:30, vx:0, vy:0, jump:-13 };
+let g2platforms=[], g2stars=[], g2particles=[];
+let g2cameraY=0, g2distance=0, g2frames=0, g2vertStack=0;
+let g2canvas, g2ctx, g2raf;
+const g2specialMessage = "Te amo, eres una niña impresionante e increíble,\nespecial por todo de lo que eres capaz.\n\nTe amo y estoy orgulloso de conocerte ❤️";
+
+function initGame2() {
+    g2canvas = document.getElementById('game2-canvas');
+    g2ctx = g2canvas.getContext('2d');
+    g2canvas.width = window.innerWidth; g2canvas.height = window.innerHeight;
+    g2stars = [];
+    for(let i=0;i<140;i++) g2stars.push({x:Math.random()*g2canvas.width,y:Math.random()*g2canvas.height,s:Math.random()*2.5,b:Math.random()*0.05,p:Math.random()*10});
+    g2changeState('MENU');
+    renderMiniPlanets();
+    if(g2raf) cancelAnimationFrame(g2raf);
+    g2draw();
+}
+
+function g2changeState(s) {
+    g2State = s;
+    document.querySelectorAll('#game2-wrap .overlay').forEach(el=>el.classList.add('hidden'));
+    const map = { MENU:'ui-menu', LEVELS:'ui-levels', POETRY:'ui-poetry', DATA:'ui-data', WIN:'ui-win', SPECIAL_WIN:'ui-special-win' };
+    const t = document.getElementById(map[s]); if(t) t.classList.remove('hidden');
+}
+
+// ─── Mini planet drawing ───
+function drawMiniPlanet(canvasId, type) {
+    const c=document.getElementById(canvasId); if(!c) return;
+    const g=c.getContext('2d'); const W=72,H=72,cx=36,cy=36,r=30;
+    g.clearRect(0,0,W,H);
+    if(type==='luna'){
+        const base=g.createRadialGradient(cx-8,cy-8,4,cx,cy,r);
+        base.addColorStop(0,'#e8eaf0'); base.addColorStop(.6,'#9ea3b5'); base.addColorStop(1,'#3d3f5a');
+        g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.fillStyle=base;g.fill();
+        g.fillStyle='rgba(50,50,80,.35)';
+        g.beginPath();g.arc(cx+6,cy-8,10,0,Math.PI*2);g.fill();
+        g.beginPath();g.arc(cx-12,cy+8,6,0,Math.PI*2);g.fill();
+        g.beginPath();g.arc(cx+4,cy+12,4,0,Math.PI*2);g.fill();
+        const shine=g.createRadialGradient(cx-10,cy-10,2,cx-10,cy-10,18);
+        shine.addColorStop(0,'rgba(255,255,255,.5)');shine.addColorStop(1,'rgba(255,255,255,0)');
+        g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.fillStyle=shine;g.fill();
+    } else if(type==='marte'){
+        const base=g.createRadialGradient(cx-8,cy-8,3,cx,cy,r);
+        base.addColorStop(0,'#ffaa7a');base.addColorStop(.5,'#c0452a');base.addColorStop(1,'#5a1200');
+        g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.fillStyle=base;g.fill();
+        g.strokeStyle='rgba(80,10,0,.4)';g.lineWidth=2;
+        g.beginPath();g.moveTo(cx-14,cy-5);g.bezierCurveTo(cx-4,cy-8,cx+8,cy+2,cx+16,cy-3);g.stroke();
+        g.fillStyle='rgba(240,248,255,.7)';
+        g.beginPath();g.ellipse(cx,cy-r+8,9,5,0,0,Math.PI*2);g.fill();
+        const shine=g.createRadialGradient(cx-10,cy-10,1,cx-10,cy-10,16);
+        shine.addColorStop(0,'rgba(255,220,200,.55)');shine.addColorStop(1,'rgba(255,220,200,0)');
+        g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.fillStyle=shine;g.fill();
+    } else if(type==='jupiter'){
+        const base=g.createRadialGradient(cx-6,cy-8,2,cx,cy,r);
+        base.addColorStop(0,'#f5d5a8');base.addColorStop(.4,'#c8956a');base.addColorStop(1,'#5a2800');
+        g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.fillStyle=base;g.fill();
+        const bands=[{y:-14,h:5,c:'rgba(160,80,30,.5)'},{y:-6,h:4,c:'rgba(200,130,70,.4)'},{y:2,h:6,c:'rgba(140,60,20,.5)'},{y:12,h:4,c:'rgba(180,100,40,.4)'}];
+        g.save();g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.clip();
+        bands.forEach(b=>{g.fillStyle=b.c;g.fillRect(cx-r,cy+b.y,r*2,b.h);});
+        g.fillStyle='rgba(200,60,30,.7)';g.beginPath();g.ellipse(cx+4,cy+2,9,5,-.1,0,Math.PI*2);g.fill();
+        g.restore();
+        const shine=g.createRadialGradient(cx-10,cy-10,1,cx-10,cy-10,18);
+        shine.addColorStop(0,'rgba(255,240,210,.4)');shine.addColorStop(1,'rgba(255,240,210,0)');
+        g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.fillStyle=shine;g.fill();
+    } else if(type==='saturno'){
+        g.save();
+        g.beginPath();g.ellipse(cx,cy+4,44,10,0,Math.PI,Math.PI*2);
+        g.fillStyle='rgba(200,180,120,.5)';g.fill();
+        const base=g.createRadialGradient(cx-7,cy-7,3,cx,cy,r-4);
+        base.addColorStop(0,'#f5e8b0');base.addColorStop(.5,'#d4a94a');base.addColorStop(1,'#6b4d00');
+        g.beginPath();g.arc(cx,cy,r-4,0,Math.PI*2);g.fillStyle=base;g.fill();
+        g.beginPath();g.arc(cx,cy,r-4,0,Math.PI*2);g.clip();
+        [{y:-8,c:'rgba(120,80,0,.35)',h:4},{y:4,c:'rgba(100,60,0,.3)',h:3}].forEach(b=>{g.fillStyle=b.c;g.fillRect(cx-r,cy+b.y,r*2,b.h);});
+        g.restore();
+        g.beginPath();g.ellipse(cx,cy+4,44,10,0,0,Math.PI);g.strokeStyle='rgba(240,210,130,.85)';g.lineWidth=6;g.stroke();
+        g.beginPath();g.ellipse(cx,cy+4,36,8,0,0,Math.PI);g.strokeStyle='rgba(210,180,100,.6)';g.lineWidth=3;g.stroke();
+        const shine=g.createRadialGradient(cx-8,cy-8,1,cx-8,cy-8,14);
+        shine.addColorStop(0,'rgba(255,248,210,.5)');shine.addColorStop(1,'rgba(255,248,210,0)');
+        g.beginPath();g.arc(cx,cy,r-4,0,Math.PI*2);g.fillStyle=shine;g.fill();
+    }
+}
+function renderMiniPlanets() {
+    drawMiniPlanet('p0','luna');drawMiniPlanet('p1','marte');
+    drawMiniPlanet('p2','jupiter');drawMiniPlanet('p3','saturno');
+}
+
+function showLevels() {
+    g2changeState('LEVELS');
+    for(let i=1;i<4;i++) { if(g2unlocked[i]) document.getElementById('card-'+i).classList.remove('locked'); }
+    document.getElementById('special-btn').style.display = g2unlocked[3] ? 'block' : 'none';
+    renderMiniPlanets();
+}
+
+function showSpecialMessage() {
+    g2changeState('SPECIAL_WIN'); typeG2Message();
+    let offset=0, direction=-1;
+    const jumpInterval=setInterval(()=>{
+        offset+=direction*12; if(offset<=-28||offset>=4) direction*=-1;
+        drawPixelAstronaut(offset);
+    },180);
+    setTimeout(()=>clearInterval(jumpInterval),8000);
+}
+
+function drawPixelAstronaut(jumpOffset=0) {
+    const ac=document.getElementById('astro-canvas'); if(!ac) return;
+    const aCtx=ac.getContext('2d'); aCtx.clearRect(0,0,120,160);
+    const px=49,py=60+jumpOffset;
+    aCtx.fillStyle='#f0f0f0';aCtx.fillRect(px,py+8,22,38);
+    aCtx.fillStyle='#eeeeee';aCtx.beginPath();aCtx.arc(px+11,py+12,14,0,Math.PI*2);aCtx.fill();
+    aCtx.fillStyle='#1a1a2e';aCtx.beginPath();aCtx.arc(px+11,py+12,9,0,Math.PI*2);aCtx.fill();
+    aCtx.fillStyle='#00ddff';aCtx.beginPath();aCtx.arc(px+9,py+10,6,0,Math.PI*2);aCtx.fill();
+    aCtx.fillStyle='#f0f0f0';aCtx.fillRect(px-6,py+15,8,18);aCtx.fillRect(px+20,py+15,8,18);
+    aCtx.fillStyle='#222233';aCtx.fillRect(px+3,py+42,7,18);aCtx.fillRect(px+13,py+42,7,18);
+    aCtx.fillStyle='#444466';aCtx.fillRect(px+18,py+10,10,20);
+}
+
+function typeG2Message() {
+    const el=document.getElementById('special-win'); el.innerHTML=''; let i=0;
+    const interval=setInterval(()=>{
+        if(i<g2specialMessage.length){ el.innerHTML+=g2specialMessage.charAt(i)==='\n'?'<br>':g2specialMessage.charAt(i); i++; }
+        else clearInterval(interval);
+    },45);
+}
+
+function selectLevel(idx) {
+    if(!g2unlocked[idx]) return;
+    g2currentLvlIdx=idx; resetGame2(); g2changeState('GAME');
+}
+
+function resetGame2() {
+    g2player.x=g2canvas.width/2-11; g2player.y=g2canvas.height-150;
+    g2player.vx=0; g2player.vy=0;
+    g2cameraY=0; g2distance=0; g2platforms=[]; g2particles=[]; g2vertStack=0;
+    g2platforms.push(createAsteroid2(g2player.x, g2player.y+40, 45, 'real'));
+    for(let i=0;i<15;i++) spawnPlatformSet2();
+}
+
+function createAsteroid2(x,y,r,type) {
+    const vertices=[]; const numSides=8+Math.floor(Math.random()*6);
+    for(let i=0;i<numSides;i++){
+        const angle=(i/numSides)*Math.PI*2; const dist=r*(0.8+Math.random()*0.4);
+        vertices.push({x:Math.cos(angle)*dist,y:Math.sin(angle)*dist});
+    }
+    const spots=[]; const numSpots=2+Math.floor(Math.random()*5);
+    for(let i=0;i<numSpots;i++) spots.push({x:(Math.random()-.5)*r,y:(Math.random()-.5)*r,size:Math.random()*(r/3)});
+    return {x,y,r,vertices,spots,rot:Math.random()*Math.PI,rotSpeed:(Math.random()-.5)*.03,type};
+}
+
+function spawnPlatformSet2() {
+    const lastReal=g2platforms.filter(p=>p.type==='real').pop();
+    let nextY=lastReal.y-(110+Math.random()*40);
+    let offsetX=(Math.random()*260-130);
+    if(Math.abs(offsetX)<40) g2vertStack++;
+    else g2vertStack=0;
+    if(g2vertStack>=2){offsetX=offsetX>0?140:-140;g2vertStack=0;}
+    let nextX=lastReal.x+offsetX;
+    if(nextX<50) nextX=50+Math.random()*50;
+    if(nextX>g2canvas.width-50) nextX=g2canvas.width-50-Math.random()*50;
+    g2platforms.push(createAsteroid2(nextX,nextY,35+Math.random()*10,'real'));
+    if(g2levels[g2currentLvlIdx].traps&&Math.random()>.4){
+        let trapY=nextY+(Math.random()*60-30);
+        let trapX=Math.random()*(g2canvas.width-100)+50;
+        if(Math.abs(trapX-nextX)>80) g2platforms.push(createAsteroid2(trapX,trapY,38,'trap'));
+    }
+}
+
+let g2touchX=null;
+// Touch handlers will be set up in initGame2, managed via wrapper
+
+function g2update() {
+    if(g2State!=='GAME') return;
+    g2frames++;
+    if(g2touchX!==null) g2player.vx=(g2touchX<g2canvas.width/2)?-6:6;
+    else g2player.vx*=0.85;
+    g2player.x+=g2player.vx; g2player.vy+=0.5; g2player.y+=g2player.vy;
+    if(g2player.x<-20) g2player.x=g2canvas.width;
+    if(g2player.x>g2canvas.width) g2player.x=-20;
+    if(g2player.y<g2canvas.height/2+g2cameraY) g2cameraY=g2player.y-g2canvas.height/2;
+    if(g2player.vy>0){
+        g2platforms.forEach(p=>{
+            if(p.type==='real'&&g2player.x+g2player.w>p.x-p.r&&g2player.x<p.x+p.r&&
+               g2player.y+g2player.h>p.y-15&&g2player.y+g2player.h<p.y+10){
+                g2player.vy=g2player.jump; createDust2(g2player.x+g2player.w/2,g2player.y+g2player.h);
+                g2distance=Math.max(g2distance,Math.abs(Math.floor(g2player.y-(g2canvas.height-150))));
+            }
+        });
+    }
+    for(let i=g2particles.length-1;i>=0;i--){
+        let p=g2particles[i]; p.x+=p.vx; p.y+=p.vy; p.life-=0.03;
+        if(p.life<=0) g2particles.splice(i,1);
+    }
+    if(g2platforms[g2platforms.length-1].y>g2cameraY-100) spawnPlatformSet2();
+    if(g2platforms[0].y>g2cameraY+g2canvas.height+50) g2platforms.shift();
+    if(g2player.y>g2cameraY+g2canvas.height) resetGame2();
+    if(g2distance>g2levels[g2currentLvlIdx].goal+200){
+        if(g2currentLvlIdx<3) g2unlocked[g2currentLvlIdx+1]=true;
+        if(g2currentLvlIdx===3) showSpecialMessage();
+        else g2changeState('WIN');
+    }
+}
+
+function createDust2(x,y){
+    for(let i=0;i<8;i++) g2particles.push({x,y,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*2,life:1.0,size:Math.random()*3+1});
+}
+
+function drawAsteroid2(p) {
+    const g=g2ctx;
+    g.save(); g.translate(p.x,p.y); g.rotate(p.rot);
+    g.beginPath(); g.moveTo(p.vertices[0].x,p.vertices[0].y);
+    for(let i=1;i<p.vertices.length;i++) g.lineTo(p.vertices[i].x,p.vertices[i].y);
+    g.closePath();
+    if(p.type==='real'){g.fillStyle='#5a5a5a';g.strokeStyle='#888';}
+    else{g.fillStyle='#1a1d23';g.strokeStyle='#2c3e50';}
+    g.lineWidth=2; g.fill(); g.stroke();
+    p.spots.forEach(s=>{
+        g.beginPath();g.arc(s.x,s.y,s.size,0,Math.PI*2);
+        g.fillStyle=p.type==='real'?'rgba(0,0,0,.2)':'rgba(0,0,0,.5)'; g.fill();
+    });
+    g.restore();
+}
+
+function drawPlanet2() {
+    const goalY=(g2canvas.height-150)-g2levels[g2currentLvlIdx].goal-500;
+    const cx=g2canvas.width/2, R=280, g=g2ctx;
+    if(g2currentLvlIdx===0){
+        const grad=g.createRadialGradient(cx-60,goalY-60,20,cx,goalY,R);
+        grad.addColorStop(0,'#e8eaf0');grad.addColorStop(.5,'#9ea3b5');grad.addColorStop(1,'#3a3d55');
+        g.beginPath();g.arc(cx,goalY,R,0,Math.PI*2);g.fillStyle=grad;g.fill();
+        g.fillStyle='rgba(50,50,80,.3)';
+        [[cx+60,goalY-80,60],[cx-90,goalY+60,40],[cx+40,goalY+110,30],[cx-20,goalY-140,20]].forEach(([x,y,r2])=>{g.beginPath();g.arc(x,y,r2,0,Math.PI*2);g.fill();});
+    } else if(g2currentLvlIdx===1){
+        const grad=g.createRadialGradient(cx-60,goalY-60,20,cx,goalY,R);
+        grad.addColorStop(0,'#ff9970');grad.addColorStop(.4,'#c0452a');grad.addColorStop(1,'#5a1200');
+        g.beginPath();g.arc(cx,goalY,R,0,Math.PI*2);g.fillStyle=grad;g.fill();
+        g.save();g.beginPath();g.arc(cx,goalY,R,0,Math.PI*2);g.clip();
+        g.strokeStyle='rgba(80,10,0,.3)';g.lineWidth=12;
+        g.beginPath();g.moveTo(cx-200,goalY-40);g.bezierCurveTo(cx-50,goalY-80,cx+80,goalY+20,cx+220,goalY-30);g.stroke();
+        g.restore();
+        g.fillStyle='rgba(230,245,255,.7)';g.beginPath();g.ellipse(cx,goalY-R+22,50,25,0,0,Math.PI*2);g.fill();
+    } else if(g2currentLvlIdx===2){
+        const grad=g.createRadialGradient(cx-70,goalY-60,15,cx,goalY,R);
+        grad.addColorStop(0,'#f5d5a8');grad.addColorStop(.4,'#c8956a');grad.addColorStop(1,'#5a2800');
+        g.beginPath();g.arc(cx,goalY,R,0,Math.PI*2);g.fillStyle=grad;g.fill();
+        g.save();g.beginPath();g.arc(cx,goalY,R,0,Math.PI*2);g.clip();
+        [[-90,28,'rgba(160,80,30,.5)'],[-55,20,'rgba(210,140,80,.35)'],[-10,30,'rgba(140,60,20,.5)'],[45,22,'rgba(180,100,40,.4)'],[90,18,'rgba(160,80,30,.4)']].forEach(([dy,h,c])=>{g.fillStyle=c;g.fillRect(cx-R,goalY+dy,R*2,h);});
+        g.fillStyle='rgba(200,60,30,.75)';g.beginPath();g.ellipse(cx+30,goalY+20,80,45,-.1,0,Math.PI*2);g.fill();
+        g.restore();
+    } else {
+        g.beginPath();g.ellipse(cx,goalY+30,R+200,60,0,Math.PI,Math.PI*2);g.fillStyle='rgba(200,175,110,.45)';g.fill();
+        const grad=g.createRadialGradient(cx-70,goalY-60,15,cx,goalY,R-30);
+        grad.addColorStop(0,'#f5e8b0');grad.addColorStop(.5,'#d4a94a');grad.addColorStop(1,'#6b4d00');
+        g.beginPath();g.arc(cx,goalY,R-30,0,Math.PI*2);g.fillStyle=grad;g.fill();
+        g.strokeStyle='rgba(240,210,130,.9)';g.lineWidth=28;g.beginPath();g.ellipse(cx,goalY+30,R+200,60,0,0,Math.PI);g.stroke();
+        g.strokeStyle='rgba(210,180,100,.7)';g.lineWidth=16;g.beginPath();g.ellipse(cx,goalY+30,R+140,42,0,0,Math.PI);g.stroke();
+    }
+    const shine=g2ctx.createRadialGradient(cx-R*.35,goalY-R*.35,10,cx,goalY,R);
+    shine.addColorStop(0,'rgba(255,255,255,.25)');shine.addColorStop(.5,'rgba(255,255,255,0)');
+    g2ctx.beginPath();g2ctx.arc(cx,goalY,(g2currentLvlIdx===3?R-30:R),0,Math.PI*2);g2ctx.fillStyle=shine;g2ctx.fill();
+}
+
+function g2draw() {
+    if(!g2ctx) return;
+    g2ctx.fillStyle='#010103'; g2ctx.fillRect(0,0,g2canvas.width,g2canvas.height);
+    g2stars.forEach(s=>{
+        let flicker=0.2+Math.abs(Math.sin(g2frames*s.b))*0.8;
+        g2ctx.fillStyle=`rgba(255,255,255,${flicker})`;
+        let yPos=g2State==='GAME'?(s.y+g2cameraY*(0.1+s.p*.05))%g2canvas.height:s.y;
+        g2ctx.fillRect(s.x,yPos,s.s,s.s);
+    });
+    if(g2State==='GAME'){
+        g2ctx.save(); g2ctx.translate(0,-g2cameraY);
+        if(g2distance>g2levels[g2currentLvlIdx].goal-1500) drawPlanet2();
+        g2platforms.forEach(p=>{p.rot+=p.rotSpeed;drawAsteroid2(p);});
+        g2particles.forEach(p=>{
+            g2ctx.fillStyle=`rgba(150,150,150,${p.life})`;
+            g2ctx.fillRect(p.x,p.y,p.size,p.size);
+        });
+        g2ctx.fillStyle='white';g2ctx.fillRect(g2player.x,g2player.y,g2player.w,g2player.h);
+        g2ctx.fillStyle='#333';g2ctx.fillRect(g2player.x+4,g2player.y+4,g2player.w-8,10);
+        g2ctx.fillStyle='#E74C3C';g2ctx.fillRect(g2player.x-4,g2player.y+12,4,14);
+        g2ctx.restore();
+        g2ctx.fillStyle='rgba(255,255,255,.7)'; g2ctx.font="bold 13px 'Courier New'";
+        g2ctx.fillText(g2levels[g2currentLvlIdx].name,20,38);
+        g2ctx.fillStyle='rgba(255,255,255,.12)'; g2ctx.fillRect(20,46,130,7);
+        g2ctx.fillStyle='#39ff87'; g2ctx.fillRect(20,46,Math.min(130,(g2distance/g2levels[g2currentLvlIdx].goal)*130),7);
+        g2ctx.strokeStyle='rgba(255,255,255,.2)'; g2ctx.lineWidth=1; g2ctx.strokeRect(20,46,130,7);
+        g2update();
+    }
+    g2raf = requestAnimationFrame(g2draw);
+}
+
+// Touch for game2 (delegated through wrapper)
+document.getElementById('game2-wrap').addEventListener('touchstart', e => {
+    if(g2State==='GAME') g2touchX = e.touches[0].clientX;
+}, {passive:true});
+document.getElementById('game2-wrap').addEventListener('touchend', () => { g2touchX = null; }, {passive:true});
+document.getElementById('game2-wrap').addEventListener('mousedown', e => { if(g2State==='GAME') g2touchX = e.clientX; });
+document.getElementById('game2-wrap').addEventListener('mouseup', () => { g2touchX = null; });
+</script>
+
+<!-- ═══════════════════════════════════════════
+     SCRIPTS: JUEGO 3 (CARAMELITO)
+═══════════════════════════════════════════ -->
+<script>
+// ─── CARAMELITO ENGINE ────────────────────────────
+let cCanvas, cCtx;
+let g3Running = false;
+let g3AnimFrame;
+
+// Game state
+const C = {
+    ROAD_W: 0,    // set on init
+    ROAD_X: 0,
+    W: 0, H: 0,
+    scroll: 0,
+    speed: 2.5,
+    speedMax: 8,
+    score: 0,
+    scoreFloat: 0,
+    lives: 3,
+    frame: 0,
+    x2Active: false,
+    x2Timer: 0,
+    invincible: 0,
+    gameOver: false,
+    player: { x:0, y:0, w:38, h:60 },
+    objects: [],         // obstacles + powerups
+    borderDecos: [],     // road edge decorations
+    roadSegments: [],    // road texture lines
+    touchLeft: false,
+    touchRight: false,
+    touchUp: false,
+    touchDown: false,
+    playerVX: 0,
+    playerVY: 0,
+};
+
+// ─── OBJECT TYPES ──────────────────────────────────
+// type: 'rock'|'spike'|'lollipop'|'chocolate'|'star'
+// category: 'obstacle'|'powerup'
+
+function cRand(min,max){ return Math.random()*(max-min)+min; }
+
+function spawnObject() {
+    const score = C.score;
+    const roadX = C.ROAD_X;
+    const roadW = C.ROAD_W;
+    
+    // Determine what can spawn
+    const pool = ['rock'];
+    if(score >= 20) pool.push('spike');
+    if(score >= 20) pool.push('lollipop');
+    if(score >= 30) pool.push('chocolate');
+    if(score >= 60 && Math.random() < 0.03) pool.push('star');
+
+    const type = pool[Math.floor(Math.random()*pool.length)];
+    const category = (type==='rock'||type==='spike') ? 'obstacle' : 'powerup';
+
+    // Anticolision: find last object of same category
+    const lastSame = [...C.objects].reverse().find(o => o.category === category);
+    if(lastSame && lastSame.y > -120) return; // too close, skip
+
+    const x = roadX + cRand(28, roadW-28);
+    const obj = { type, category, x, y: -60, w:36, h:36 };
+    if(type==='star') { obj.w=30; obj.h=30; }
+    if(type==='lollipop') { obj.w=32; obj.h=40; }
+    if(type==='chocolate') { obj.w=40; obj.h=28; }
+    C.objects.push(obj);
+}
+
+function drawRoad() {
+    const g = cCtx;
+    const rX = C.ROAD_X, rW = C.ROAD_W, H = C.H;
+
+    // Grassy/candy side
+    const grassGrad = g.createLinearGradient(0,0,C.W,0);
+    grassGrad.addColorStop(0, '#c8f5a0');
+    grassGrad.addColorStop(0.5, '#a8e880');
+    grassGrad.addColorStop(1, '#c8f5a0');
+    g.fillStyle = grassGrad;
+    g.fillRect(0, 0, C.W, H);
+
+    // Road surface
+    const roadGrad = g.createLinearGradient(rX, 0, rX+rW, 0);
+    roadGrad.addColorStop(0, '#c8b89a');
+    roadGrad.addColorStop(0.15, '#d4c4a8');
+    roadGrad.addColorStop(0.5, '#ddd0b8');
+    roadGrad.addColorStop(0.85, '#d4c4a8');
+    roadGrad.addColorStop(1, '#c8b89a');
+    g.fillStyle = roadGrad;
+    g.fillRect(rX, 0, rW, H);
+
+    // Road edge stripes
+    g.strokeStyle = '#ffe066';
+    g.lineWidth = 5;
+    g.beginPath(); g.moveTo(rX+5, 0); g.lineTo(rX+5, H); g.stroke();
+    g.beginPath(); g.moveTo(rX+rW-5, 0); g.lineTo(rX+rW-5, H); g.stroke();
+
+    // Center dashes
+    g.setLineDash([28, 20]);
+    g.strokeStyle = 'rgba(255,255,255,0.55)';
+    g.lineWidth = 4;
+    const cx = rX + rW/2;
+    const offset = C.scroll % 48;
+    g.beginPath(); g.moveTo(cx, -offset); g.lineTo(cx, H-offset+48); g.stroke();
+    g.setLineDash([]);
+}
+
+function drawBorderDecos() {
+    C.borderDecos.forEach(d => {
+        const g = cCtx;
+        const y = ((d.origY + C.scroll * d.speed) % (C.H + 200)) - 100;
+        g.font = `${d.size}px serif`;
+        g.globalAlpha = d.alpha;
+        g.fillText(d.emoji, d.x, y);
+        g.globalAlpha = 1;
+    });
+}
+
+function initBorderDecos() {
+    C.borderDecos = [];
+    const emojis = ['🍭','💝','🍬','🌸','💖','⭐','🍫','🎀','💕','🌺'];
+    const leftX = C.ROAD_X * 0.5;
+    const rightX = C.ROAD_X + C.ROAD_W + (C.W - C.ROAD_X - C.ROAD_W) * 0.5;
+    for(let i=0; i<18; i++){
+        const side = Math.random() < 0.5 ? 'left' : 'right';
+        const x = side==='left'
+            ? cRand(8, C.ROAD_X - 20)
+            : cRand(C.ROAD_X+C.ROAD_W+8, C.W-28);
+        C.borderDecos.push({
+            emoji: emojis[Math.floor(Math.random()*emojis.length)],
+            x, origY: cRand(0, C.H + 200),
+            size: cRand(18, 32),
+            speed: cRand(0.6, 1.0),
+            alpha: cRand(0.4, 0.9)
+        });
+    }
+}
+
+function drawPlayer() {
+    const g = cCtx;
+    const p = C.player;
+    const x = p.x, y = p.y, w = p.w, h = p.h;
+
+    // Flash effect when invincible
+    if(C.invincible > 0 && Math.floor(C.frame/4)%2===0) {
+        g.globalAlpha = 0.3;
+    }
+
+    // Car body
+    const carGrad = g.createLinearGradient(x, y, x+w, y+h);
+    carGrad.addColorStop(0, '#ff6b9d');
+    carGrad.addColorStop(0.5, '#e91e8c');
+    carGrad.addColorStop(1, '#c4006e');
+    g.fillStyle = carGrad;
+    g.beginPath();
+    g.roundRect(x+4, y+8, w-8, h-16, 6);
+    g.fill();
+
+    // Car top
+    g.fillStyle = '#ff99c0';
+    g.beginPath();
+    g.roundRect(x+8, y, w-16, h*0.45, [8,8,4,4]);
+    g.fill();
+
+    // Windshield
+    g.fillStyle = 'rgba(150,230,255,0.8)';
+    g.beginPath();
+    g.roundRect(x+10, y+4, w-20, h*0.22, 4);
+    g.fill();
+
+    // Heart sticker on hood
+    g.font = '11px serif';
+    g.textAlign = 'center';
+    g.fillText('💖', x+w/2, y+h*0.72);
+
+    // Wheels
+    g.fillStyle = '#222';
+    const wheelW = 9, wheelH = 13;
+    [[x-2, y+12],[x+w-7, y+12],[x-2, y+h-22],[x+w-7, y+h-22]].forEach(([wx,wy])=>{
+        g.beginPath(); g.roundRect(wx, wy, wheelW, wheelH, 3); g.fill();
+    });
+    g.fillStyle = '#555';
+    [[x-1, y+14],[x+w-6, y+14],[x-1, y+h-20],[x+w-6, y+h-20]].forEach(([wx,wy])=>{
+        g.beginPath(); g.roundRect(wx, wy, 7, 9, 2); g.fill();
+    });
+
+    // Speed lines when fast
+    if(C.speed > 4) {
+        g.strokeStyle = 'rgba(255,200,230,0.4)';
+        g.lineWidth = 2;
+        for(let i=0;i<4;i++){
+            const lx = x + (i%2===0?3:w-3);
+            const ly = y + h*0.2 + i*12;
+            const len = (C.speed-3)*10;
+            g.beginPath(); g.moveTo(lx,ly); g.lineTo(lx,ly+len); g.stroke();
+        }
+    }
+
+    g.globalAlpha = 1;
+    g.textAlign = 'left';
+}
+
+const OBJ_EMOJI = {
+    rock: '🪨',
+    spike: '⚡',
+    lollipop: '🍭',
+    chocolate: '🍫',
+    star: '⭐'
+};
+
+function drawObjects() {
+    const g = cCtx;
+    C.objects.forEach(obj => {
+        g.font = `${obj.w}px serif`;
+        g.textAlign = 'center';
+        g.fillText(OBJ_EMOJI[obj.type], obj.x + obj.w/2, obj.y + obj.h);
+    });
+    g.textAlign = 'left';
+}
+
+function rectOverlap(a, b) {
+    return a.x < b.x+b.w && a.x+a.w > b.x &&
+           a.y < b.y+b.h && a.y+a.h > b.y;
+}
+
+function showScorePopup(text, x, y, color) {
+    const el = document.createElement('div');
+    el.className = 'score-popup';
+    el.textContent = text;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.color = color || '#ffd700';
+    document.getElementById('game3-wrap').appendChild(el);
+    setTimeout(() => el.remove(), 1200);
+}
+
+function updateLivesDisplay() {
+    for(let i=1;i<=3;i++){
+        const h = document.getElementById('c-heart-'+i);
+        if(h) h.classList.toggle('lost', i > C.lives);
+    }
+}
+
+function showPowerupBanner(text) {
+    const b = document.getElementById('c-powerup-banner');
+    b.textContent = text;
+    b.classList.add('visible');
+    setTimeout(() => b.classList.remove('visible'), 5200);
+}
+
+function cUpdate() {
+    C.frame++;
+    C.scroll += C.speed;
+
+    // Handle player movement
+    const p = C.player;
+    const margin = 6;
+    const minX = C.ROAD_X + margin;
+    const maxX = C.ROAD_X + C.ROAD_W - p.w - margin;
+    const minY = C.H * 0.45;
+    const maxY = C.H - p.h - 10;
+
+    // Touch controls
+    const speedH = 4.5, speedV = 2.5;
+    if(C.touchLeft) C.playerVX -= 1.2;
+    if(C.touchRight) C.playerVX += 1.2;
+    if(C.touchUp) C.playerVY -= 0.8;
+    if(C.touchDown) C.playerVY += 0.8;
+
+    // Friction
+    C.playerVX *= 0.80;
+    C.playerVY *= 0.80;
+
+    // Clamp velocity
+    C.playerVX = Math.max(-speedH, Math.min(speedH, C.playerVX));
+    C.playerVY = Math.max(-speedV, Math.min(speedV, C.playerVY));
+
+    p.x += C.playerVX;
+    p.y += C.playerVY;
+    p.x = Math.max(minX, Math.min(maxX, p.x));
+    p.y = Math.max(minY, Math.min(maxY, p.y));
+
+    // Increase speed gradually
+    C.speed = Math.min(C.speedMax, 2.5 + C.score * 0.04);
+
+    // Score: +2 per second (60fps)
+    C.scoreFloat += C.x2Active ? 4/60 : 2/60;
+    const prevScore = C.score;
+    C.score = Math.floor(C.scoreFloat);
+    if(C.score !== prevScore) {
+        document.getElementById('c-score-display').textContent = '🍬 ' + C.score;
+    }
+
+    // x2 timer
+    if(C.x2Active) {
+        C.x2Timer -= 1/60;
+        if(C.x2Timer <= 0) { C.x2Active = false; }
+    }
+
+    // Invincibility
+    if(C.invincible > 0) C.invincible--;
+
+    // Spawn objects
+    if(C.frame % Math.max(55, 90 - C.score) === 0) {
+        spawnObject();
+    }
+
+    // Update objects
+    for(let i = C.objects.length-1; i >= 0; i--) {
+        const obj = C.objects[i];
+        obj.y += C.speed * 1.1;
+
+        // Off screen
+        if(obj.y > C.H + 80) { C.objects.splice(i,1); continue; }
+
+        // Collision
+        const pBox = { x:p.x+4, y:p.y+4, w:p.w-8, h:p.h-8 };
+        const oBox = { x:obj.x, y:obj.y, w:obj.w, h:obj.h };
+        if(rectOverlap(pBox, oBox)) {
+            C.objects.splice(i,1);
+            if(obj.category === 'obstacle') {
+                if(C.invincible <= 0) {
+                    C.lives--;
+                    C.invincible = 120;
+                    updateLivesDisplay();
+                    // Slowdown on rock
+                    if(obj.type === 'rock') C.speed = Math.max(2.5, C.speed * 0.55);
+                    showScorePopup('-1 ❤️', p.x + p.w/2, p.y, '#ff4466');
+                    if(C.lives <= 0) { triggerGameOver(); return; }
+                }
+            } else {
+                // Powerup!
+                if(obj.type === 'lollipop') {
+                    C.x2Active = true;
+                    C.x2Timer = 5;
+                    showPowerupBanner('🍭 x2 SCORE por 5s!');
+                    showScorePopup('x2!', p.x+p.w/2, p.y, '#ff99c0');
+                } else if(obj.type === 'chocolate') {
+                    const bonus = C.x2Active ? 20 : 10;
+                    C.scoreFloat += bonus;
+                    C.score = Math.floor(C.scoreFloat);
+                    document.getElementById('c-score-display').textContent = '🍬 ' + C.score;
+                    showScorePopup('+'+bonus+'🍫', p.x+p.w/2, p.y, '#c06000');
+                } else if(obj.type === 'star') {
+                    if(C.lives < 3) {
+                        C.lives++;
+                        updateLivesDisplay();
+                        showScorePopup('+❤️', p.x+p.w/2, p.y, '#ff6b9d');
+                    } else {
+                        showScorePopup('❤️MAX!', p.x+p.w/2, p.y, '#ff6b9d');
+                    }
+                }
+            }
+        }
+    }
+}
+
+function cDraw() {
+    if(!cCtx || !g3Running) return;
+    drawRoad();
+    drawBorderDecos();
+    drawObjects();
+    drawPlayer();
+    g3AnimFrame = requestAnimationFrame(cLoop);
+}
+
+function cLoop() {
+    if(!g3Running) return;
+    cUpdate();
+    cDraw();
+}
+
+function triggerGameOver() {
+    g3Running = false;
+    document.getElementById('c-hud').classList.add('hidden');
+    document.getElementById('c-touch-hint').classList.add('hidden');
+    document.getElementById('c-gameover').classList.remove('hidden');
+    document.getElementById('c-go-score-text').textContent = 'Score: ' + C.score;
+}
+
+function initGame3() {
+    cCanvas = document.getElementById('caramelito-canvas');
+    cCtx = cCanvas.getContext('2d');
+    cCanvas.width = window.innerWidth;
+    cCanvas.height = window.innerHeight;
+
+    // Recalculate road dimensions
+    const roadW = Math.min(280, window.innerWidth * 0.7);
+    C.W = cCanvas.width;
+    C.H = cCanvas.height;
+    C.ROAD_W = roadW;
+    C.ROAD_X = (C.W - roadW) / 2;
+
+    showCaramelitoLobby();
+
+    // Touch controls
+    setupCaramelitoTouch();
+}
+
+function showCaramelitoLobby() {
+    g3Running = false;
+    if(g3AnimFrame) cancelAnimationFrame(g3AnimFrame);
+    document.getElementById('c-lobby').classList.remove('hidden');
+    document.getElementById('c-hud').classList.add('hidden');
+    document.getElementById('c-gameover').classList.add('hidden');
+    document.getElementById('c-touch-hint').classList.add('hidden');
+}
+
+function startCaramelito() {
+    document.getElementById('c-lobby').classList.add('hidden');
+    document.getElementById('c-gameover').classList.add('hidden');
+    document.getElementById('c-hud').classList.remove('hidden');
+    document.getElementById('c-touch-hint').classList.remove('hidden');
+
+    // Reset game state
+    C.scroll = 0; C.speed = 2.5; C.score = 0; C.scoreFloat = 0;
+    C.lives = 3; C.frame = 0;
+    C.x2Active = false; C.x2Timer = 0; C.invincible = 0;
+    C.gameOver = false;
+    C.objects = [];
+    C.playerVX = 0; C.playerVY = 0;
+    C.touchLeft = false; C.touchRight = false; C.touchUp = false; C.touchDown = false;
+
+    // Player start position
+    C.player.x = C.ROAD_X + C.ROAD_W/2 - C.player.w/2;
+    C.player.y = C.H * 0.65;
+
+    updateLivesDisplay();
+    document.getElementById('c-score-display').textContent = '🍬 0';
+    document.getElementById('c-powerup-banner').classList.remove('visible');
+    initBorderDecos();
+
+    g3Running = true;
+    if(g3AnimFrame) cancelAnimationFrame(g3AnimFrame);
+    cLoop();
+}
+
+function restartCaramelito() {
+    startCaramelito();
+}
+
+// ─── TOUCH / MOUSE CONTROLS ──────────────────────────
+let cTouchSetup = false;
+function setupCaramelitoTouch() {
+    if(cTouchSetup) return;
+    cTouchSetup = true;
+    const wrap = document.getElementById('game3-wrap');
+
+    // Track all active touches
+    function updateTouches(touches) {
+        C.touchLeft = false; C.touchRight = false;
+        C.touchUp = false; C.touchDown = false;
+        const mid = C.W / 2;
+        const thirdH = C.H / 3;
+        for(let t of touches) {
+            // Left/Right by half-screen horizontal
+            if(t.clientX < mid) C.touchLeft = true;
+            else C.touchRight = true;
+            // Up/Down by third-screen vertical
+            if(t.clientY < thirdH) C.touchUp = true;
+            if(t.clientY > thirdH*2) C.touchDown = true;
+        }
+    }
+
+    wrap.addEventListener('touchstart', e => {
+        if(!g3Running) return;
+        e.preventDefault();
+        updateTouches(e.touches);
+    }, { passive: false });
+    wrap.addEventListener('touchmove', e => {
+        if(!g3Running) return;
+        e.preventDefault();
+        updateTouches(e.touches);
+    }, { passive: false });
+    wrap.addEventListener('touchend', e => {
+        updateTouches(e.touches);
+    }, { passive: true });
+    wrap.addEventListener('touchcancel', e => {
+        C.touchLeft=false; C.touchRight=false; C.touchUp=false; C.touchDown=false;
+    }, { passive: true });
+
+    // Mouse fallback
+    wrap.addEventListener('mousedown', e => {
+        if(!g3Running) return;
+        if(e.clientX < C.W/2) C.touchLeft = true;
+        else C.touchRight = true;
+    });
+    wrap.addEventListener('mouseup', () => { C.touchLeft=false; C.touchRight=false; });
+    wrap.addEventListener('mousemove', e => {
+        if(!(e.buttons & 1)) return;
+        C.touchLeft = e.clientX < C.W/2;
+        C.touchRight = !C.touchLeft;
+    });
+
+    // Keyboard fallback
+    document.addEventListener('keydown', e => {
+        if(!g3Running || !document.getElementById('game3-wrap').classList.contains('active')) return;
+        if(e.key==='ArrowLeft') C.touchLeft=true;
+        if(e.key==='ArrowRight') C.touchRight=true;
+        if(e.key==='ArrowUp') C.touchUp=true;
+        if(e.key==='ArrowDown') C.touchDown=true;
+    });
+    document.addEventListener('keyup', e => {
+        if(e.key==='ArrowLeft') C.touchLeft=false;
+        if(e.key==='ArrowRight') C.touchRight=false;
+        if(e.key==='ArrowUp') C.touchUp=false;
+        if(e.key==='ArrowDown') C.touchDown=false;
+    });
+}
+</script>
+
+</body>
+</html>
